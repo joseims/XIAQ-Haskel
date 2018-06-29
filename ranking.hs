@@ -1,4 +1,4 @@
-module ranking
+module Ranking
 ( 
 name, 
 points,
