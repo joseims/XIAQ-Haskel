@@ -1,7 +1,7 @@
-data Item = Item { strength' :: Int,
-			 	   defense' :: Int,
-		 		   health' :: Int,
-				   maxHealth' :: Int 
+data Item = Item { strength_ :: Int,
+			 	   defense_ :: Int,
+		 		   health_ :: Int,
+				   maxHealth_ :: Int 
 				 } deriving (Show)
 
 data Attributes = Attributes { strength :: Int,
