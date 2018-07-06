@@ -15,3 +15,12 @@ armorType = do
 weaponType :: IO()
 weaponType = do
       putStrLn("weapon");
+      
+notEnoughMoney :: IO()
+notEnoughMoney = do
+      putStrLn("Sinto muito, você não me parece ter dinheiro suficiente para comprar isso");
+
+repeteadItem :: IO()
+repeteadItem = do
+      putStrLn("Você já comprou esse item, escolha novamente");
+      
