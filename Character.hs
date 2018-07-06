@@ -1,3 +1,5 @@
+module Character where
+
 data Item = Item { strength_ :: Int,
 			 	   defense_ :: Int,
 		 		   health_ :: Int,
