@@ -1,17 +1,16 @@
 module Store where
 
 import Main-character
-import System.Random
 import StoreMessage
 
 -- Mensagem
 printMenuStore :: String
 printMenuStore = do
     StoreMessage.initialMessage
-
+    
 -- Rand que representa o preço aleatorio
-rand :: Int
-rand = 5
+priceItem :: Item -> Int
+priceItem item = (price item)
 
 -- Verifica se possui moedas suficiente
 checkCoins :: Int -> Bool
