@@ -1,6 +1,9 @@
+intFlip :: String -> Int
+intFlip "coroa" = 0
+intFlip "cara" = 1
+
 startBattle :: IO Int
 startBattle = do
     putStrLn("Escolha 'cara' ou 'coroa': ")
-	return 1
-    
-
+	entr <- getLine
+    return intFlip entr
