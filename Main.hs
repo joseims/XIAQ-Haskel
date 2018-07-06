@@ -1,4 +1,6 @@
 {-Item Generator-}
+import System.IO
+import System.Directory
 import System.Random
 
 data Item = Item { 
@@ -43,7 +45,7 @@ randWeapon gpm = do
     hpRand <- rand 20
     price <- rand 15
     name <- randWeaponName
-    alterer <- randAlterer
+    alterer <- randAltererItem
     return (Item (randStatus strRand 10 gpm) (randStatus hpRand 10 (gpm -1 )) 1 (randStatus price 10 gpm) (fullName name alterer))
 
 fullName :: String -> String -> String 
@@ -59,8 +61,8 @@ getInitialArmor =  (Item (20) (20) 1 0 "armor")
 randStatus ::  Int -> Int -> Int -> Int
 randStatus rando n  gpm = (n + rando) + (((n + rando)*gpm) `div` 5)
 
-randAlterer :: IO String
-randAlterer = do
+randAltererItem :: IO String
+randAltererItem = do
     i <- rand 8
     return ([" Furioso", " Brilhante"," Resistente"," Lendario"," Irreparavel"," Fraco"," Sujo"," Macio",""] !! i)
 
@@ -68,15 +70,10 @@ randAlterer = do
 {-Monster Generator-}
 
 data Monster = Monster { 
-    strength :: Int,
-    health :: Int,
-    name :: String
+    _strength_ :: Int,
+    _health_ :: Int,
+    _name_ :: String
 } deriving (Show)
-
-
-rand ::Int -> IO Int
-rand n = randomRIO (0,n)
-
 
 randMonsterName :: IO String
 randMonsterName = do 
@@ -98,24 +95,12 @@ randMonster gpm = do
     name <- monsterFullName 
     return (Monster (randStatus strRand 10 gpm) (randStatus hpRand 7 gpm) name)
 
-
-randStatus :: Int -> Int -> Int -> Int
-randStatus rando n  gpm = (n + rando) + (((n + rando)*gpm) `div` 5)
-
 randAlterer :: IO String
 randAlterer = do
     i <- rand 12
     return ([" Pacifista"," Burro"," Cego"," Imaginario"," Sem Pernas", " Invisivel", " Gigantesco"," de 3 cabecas", " Aterrorizante"," Cabeludo"," Rochoso"," Assassino", ""] !! i)
 
 {-Character-}
-data Item = Item { 
-    strength_ :: Int,
-    health_ :: Int,
-    type_ :: Int,
-    price :: Int,
-    name :: String
-    } deriving (Show)
-
 
 data Attributes = Attributes { 
                             strength :: Int,
@@ -149,21 +134,20 @@ getGPM character = (gpm character)
 getCoins :: Character -> Int
 getCoins character = (coins character)
 
-
-
-
 setItems :: Item -> Item -> Attributes
 setItems weapon armor = (Attributes 
                                 ((strength_ weapon) + (strength_ armor)) 
                                 ((health_ weapon) + (health_ armor))
                                )
 
-setCharacter :: Item -> Item -> Int -> Character
-setCharacter weapon armor gpm = (Character (setItems weapon armor) weapon armor gpm 0)
+setCharacter :: Item -> Item -> Int -> Int -> Character
+setCharacter weapon armor gpm coins = (Character (setItems weapon armor) weapon armor gpm 0)
 
+addGPM :: Character -> Int -> Character
+addGPM char gpm_ = (Character (attributes char) (getWeapon char) (getArmor char) ((getGPM char) + gpm_) (getCoins char))
 
-addCoinsAndGPM :: Character -> Int -> Int -> Character
-addCoins char coins gpm_ = (Character (attributes char) (getWeapon char) (getArmor char) ((getGPM char) + gpm_) ((getCoins char) + coins))
+addCoins :: Character -> Int -> Character
+addCoins char coins = (Character (attributes char) (getWeapon char) (getArmor char) (getGPM char) ((getCoins char) + coins))
 
 equipArmor :: Character -> Item -> Character
 equipArmor char armor = (Character (setItems (getWeapon char) armor) (getWeapon char) armor (getGPM char) (getCoins char))
@@ -181,16 +165,15 @@ gotRight moeda valor = 0
 startBattle :: IO Int
 startBattle = do
     putStrLn("Escolha 'cara' ou 'coroa': ")
-	input <- getLine
+    input <- getLine
     return gotRight input
 
 battleMoeda :: Int -> Int -> Int -> Int -> Int -> IO Int
-battleMoeda 0 = battleM (health char) ( health monst ) ( getStrength char ) (strength monst)
-battleMoeda 1 = battleH (health char) ( health monst ) ( getStrength char ) (strength monst)
+battleMoeda 0 healthChar healthMonster attackChar attackMonster = battleM healthChar healthMonster attackChar attackMonster
+battleMoeda 1 healthChar healthMonster attackChar attackMonster = battleH healthChar healthMonster attackChar attackMonster
 
 battleM :: Int -> Int -> Int -> Int -> IO Int
 battleM hphero hpmonster attackhero attackmonster = do
-
     if (hpmonster > 0) then putStrLn( "Você recebeu " ++  show (attackmonster) ++ " de dano") else return 1
 
     if (hphero > 0) then putStrLn( "Você causou " ++ show (attackhero) ++ " de dano" ) else return -1
@@ -199,7 +182,6 @@ battleM hphero hpmonster attackhero attackmonster = do
 
 battleH :: Int -> Int -> Int -> Int -> IO Int
 battleH hphero hpmonster attackhero attackmonster = do
-
     if (hphero > 0) then putStrLn( "Você causou " ++ show (attackhero) ++ " de dano" ) else return -1
 
     if (hpmonster > 0) then putStrLn( "Você recebeu " ++  show (attackmonster) ++ " de dano") else return 1
@@ -211,7 +193,7 @@ realBattle :: Int -> Character -> Monster -> Int
 realBattle moeda char monst | resultado == 1 = 1
     | resultado == 0 && moeda == 1 = 1
     | otherwise = 0
-    where resultado = battleMoeda moeda (health char) ( health monst ) ( getStrength char ) (strength monst)
+    where resultado = battleMoeda moeda (health char) ( _health_ monst ) ( getStrength char ) (_strength_ monst)
 
 battleMain :: Character -> IO Int
 battleMain char = do
@@ -241,8 +223,8 @@ battleMain char = do
 -- --chama menu dnv
 
 
-game :: Character ->  Int -> Int -> Int ->  IO()
-game char 5 points difficult= toStoreOrNot char point difficult
+game :: Character -> Int -> Int -> Int -> IO()
+game char 5 points difficult = toStoreOrNot char points difficult
 game char n pontuacao
     |wonBattle = do 
         char1 <- (addCoinsAndGPM 5 1)
@@ -251,20 +233,18 @@ game char n pontuacao
     | otherwise = saveRecord difficult points
     where wonBattle = battleMain char
 
-
-
-createHero ::Int -> Character
+createHero :: Int -> Character
 createHero n = do
     gpm <- getDifficultGPM n
     weapon <- getInitialWeapon
     armor <- getInitialArmor
     return (setCharacter weapon armor gpm)
 
-toStoreOrNot ::Int -> Int -> Character -> IO()
+toStoreOrNot :: Int -> Int -> Character -> IO()
 toStoreOrNot points difficult char = do
     wannaGoStore
     ans <- getLine
-    return if ((read ans) == 1) then (goToStore char points difficult) else ((game char 0 points difficult))
+    if ((read ans) == 1) then return (goToStore char points difficult) else return ((game char 0 points difficult))
 
 
 saveRecord :: Int -> Int -> IO()
@@ -273,10 +253,9 @@ saveRecord difficult points  = do
     return menu
 
 
-goToStore ::Int -> Int -> Character -> IO()
+goToStore :: Int -> Int -> Character -> IO()
 goToStore char points difficult = do
-    char2 <- --metodoDaLoja
-    return (game char2 0 points difficult)
+    return (game char 0 points difficult)
 
 
 menu :: IO() 
@@ -311,17 +290,14 @@ startGame = do
     startGameText
     return (game char 0 0 diff)
 
-exit :: IO()
-return 
+{-Log-}
 
-
-
-
-
-
-{-Log-}]
-
-
+save content = do
+  fileHandle <- openFile "log.txt" ReadWriteMode
+  currentContent <- hGetContents fileHandle
+  writeFile "log2.txt" ((currentContent) ++ content)
+  hClose fileHandle
+  renameFile "log2.txt" "log.txt"
 
 {-Ranking-}
 
@@ -349,8 +325,8 @@ difficultText = do
     putStrLn("2 - Medio")
     putStrLn("3 - Dificil")
 
-coins :: IO()
-coins = do 
+woncoins :: IO()
+woncoins = do 
     putStrLn("Você ganhou 5 moedas!")
 
 startGameText :: IO()
