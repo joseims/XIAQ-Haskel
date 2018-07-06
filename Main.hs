@@ -67,12 +67,45 @@ randAlterer = do
     
 {-Monster Generator-}
 
+data Monster = Monster { 
+    strength :: Int,
+    health :: Int,
+    name :: String
+} deriving (Show)
 
 
+rand ::Int -> IO Int
+rand n = randomRIO (0,n)
 
 
+randMonsterName :: IO String
+randMonsterName = do 
+    i <- rand 6
+    return (["Ladrao","Dragao","Golem","Gosma", "Vampiro","Lobisomen","Rato gigante"] !! i)
 
 
+monsterFullName :: IO String 
+monsterFullName = do
+    name <- randMonsterName
+    alterer <- randAlterer
+    return (name++alterer) 
+
+randMonster:: Int -> IO Monster
+randMonster gpm = do
+    strRand <- rand 30
+    hpRand <- rand 15
+    price <- rand 15
+    name <- monsterFullName 
+    return (Monster (randStatus strRand 10 gpm) (randStatus hpRand 7 gpm) name)
+
+
+randStatus :: Int -> Int -> Int -> Int
+randStatus rando n  gpm = (n + rando) + (((n + rando)*gpm) `div` 5)
+
+randAlterer :: IO String
+randAlterer = do
+    i <- rand 12
+    return ([" Pacifista"," Burro"," Cego"," Imaginario"," Sem Pernas", " Invisivel", " Gigantesco"," de 3 cabecas", " Aterrorizante"," Cabeludo"," Rochoso"," Assassino", ""] !! i)
 
 {-Character-}
 data Item = Item { 
@@ -139,11 +172,53 @@ equipWeapon :: Character -> Item -> Character
 equipWeapon char weapon = (Character (setItems weapon (getArmor char)) weapon (getArmor char) (getGPM char) (getCoins char))
 
 {-Battle-}
+
+gotRight :: String -> Int
+gotRight "cara" 1 = 1
+gotRight "coroa" 0 = 1
+gotRight moeda valor = 0
+
 startBattle :: IO Int
 startBattle = do
     putStrLn("Escolha 'cara' ou 'coroa': ")
-	return 1
-    
+	input <- getLine
+    return gotRight input
+
+battleMoeda :: Int -> Int -> Int -> Int -> Int -> IO Int
+battleMoeda 0 = battleM (health char) ( health monst ) ( getStrength char ) (strength monst)
+battleMoeda 1 = battleH (health char) ( health monst ) ( getStrength char ) (strength monst)
+
+battleM :: Int -> Int -> Int -> Int -> IO Int
+battleM hphero hpmonster attackhero attackmonster = do
+
+    if (hpmonster > 0) then putStrLn( "Você recebeu " ++  show (attackmonster) ++ " de dano") else return 1
+
+    if (hphero > 0) then putStrLn( "Você causou " ++ show (attackhero) ++ " de dano" ) else return -1
+
+    return battleM (hphero - attackmonster) (hpmonster - attackhero) attackhero attackmonster
+
+battleH :: Int -> Int -> Int -> Int -> IO Int
+battleH hphero hpmonster attackhero attackmonster = do
+
+    if (hphero > 0) then putStrLn( "Você causou " ++ show (attackhero) ++ " de dano" ) else return -1
+
+    if (hpmonster > 0) then putStrLn( "Você recebeu " ++  show (attackmonster) ++ " de dano") else return 1
+
+    return battleH (hphero - attackmonster) (hpmonster - attackhero) attackhero attackmonster
+
+
+realBattle :: Int -> Character -> Monster -> Int
+realBattle moeda char monst | resultado == 1 = 1
+    | resultado == 0 && moeda == 1 = 1
+    | otherwise = 0
+    where resultado = battleMoeda moeda (health char) ( health monst ) ( getStrength char ) (strength monst)
+
+battleMain :: Character -> IO Int
+battleMain char = do
+    putStrLn("A batalha está prestes a começar")
+    monst <- randMonster (getGPM char)
+    return realBattle startBattle char monst
+
 {-Store-}
 
 
@@ -173,8 +248,8 @@ game char n pontuacao
         char1 <- (addCoinsAndGPM 5 1)
         coins
         game char n+1 pontuacao+5
-    |otherwise = saveRecord difficult points
-    where wonBattle = --metodo da batalha
+    | otherwise = saveRecord difficult points
+    where wonBattle = battleMain char
 
 
 
