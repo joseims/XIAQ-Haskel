@@ -203,34 +203,34 @@ battleMain char = do
 
 {-Store-}
 
-
+addCoinsAndGPM :: Character -> Int -> Int -> Character
+addCoinsAndGPM char coins gpm_ = (Character (attributes char) (getWeapon char) (getArmor char) ((getGPM char) + gpm_) ((getCoins char) + coins))
 
 
 
 
 {-Game-}
 
--- ranking :: IO ()
--- ranking = do
---     --Selecione o nivel do ranking
---     --getRaking nivel
+ranking :: IO ()
+ranking = do
+    getRanking 0
     
 
--- getRanking :: Int -> IO ()
--- getRanking 0 = putStraLn("Ranking do facil") --chamar a funcao do ranking
--- getRanking 1 = putStrLn("Ranking do medio") --chamar a funcao do ranking
--- getRanking 2 = putStrLn("Ranking do dificil") -- chamar a funcao do rankigns
+getRanking :: Int -> IO ()
+getRanking 0 = putStrLn("Ranking do facil") --chamar a funcao do ranking
+getRanking 1 = putStrLn("Ranking do medio") --chamar a funcao do ranking
+getRanking 2 = putStrLn("Ranking do dificil") -- chamar a funcao do rankigns
 -- --chama menu dnv
 
 
 game :: Character -> Int -> Int -> Int -> IO()
 game char 5 points difficult = toStoreOrNot char points difficult
-game char n pontuacao
-    |wonBattle = do 
+game char n pontuacao difficult
+    | wonBattle = do 
         char1 <- (addCoinsAndGPM 5 1)
         coins
         game char n+1 pontuacao+5
-    | otherwise = saveRecord difficult points
+    | otherwise = saveRecord difficult pontuacao
     where wonBattle = battleMain char
 
 createHero :: Int -> Character
@@ -250,7 +250,7 @@ toStoreOrNot points difficult char = do
 saveRecord :: Int -> Int -> IO()
 saveRecord difficult points  = do
     --saveRank difficult points
-    return menu
+    return main
 
 
 goToStore :: Int -> Int -> Character -> IO()
@@ -258,18 +258,13 @@ goToStore char points difficult = do
     return (game char 0 points difficult)
 
 
-menu :: IO() 
-menu = do
-    welcome
-    option <- getLine  
-    return (selectOption (read option)) 
-
-
 selectOption :: Int -> IO()
 selectOption 1 = startGame
 selectOption 2 = ranking
 selectOption n = exit
 
+exit :: IO()
+exit = return
 
 selectDifficult :: IO Int
 selectDifficult = do
@@ -278,9 +273,9 @@ selectDifficult = do
     return (read option)
 
 getDifficultGPM :: Int -> Int
-getDifficultGMP 1 = 1
-getDifficultGMP 2 = 3
-getDifficultGMP n = 5
+getDifficultGPM 1 = 1
+getDifficultGPM 2 = 3
+getDifficultGPM n = 5
 
 
 startGame :: IO()
@@ -337,3 +332,11 @@ startGameText = do
 
 
 
+
+
+
+main :: IO() 
+main = do
+    welcome
+    option <- getLine  
+    return (selectOption (read option)) 
