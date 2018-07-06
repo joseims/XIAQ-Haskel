@@ -1,5 +1,7 @@
 module StoreMessage where
 
+import Character
+
 initialMessage :: IO()
 initialMessage = do 
       putStrLn ("Bem vindo a Loja, em que podemos ajudá-lo?");
@@ -15,6 +17,9 @@ armorType = do
 weaponType :: IO()
 weaponType = do
       putStrLn("weapon");
+      
+haveCoins :: Character -> Int
+haveCoins character = (coins character)
       
 notEnoughMoney :: IO()
 notEnoughMoney = do

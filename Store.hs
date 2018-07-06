@@ -4,9 +4,10 @@ import Main-character
 import StoreMessage
 
 -- Mensagem
-printMenuStore :: String
+printMenuStore :: Character -> String
 printMenuStore = do
     StoreMessage.initialMessage
+    StoreMessage.haveCoins
     
 -- Rand que representa o preço aleatorio
 priceItem :: Item -> Int
